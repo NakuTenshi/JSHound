@@ -4,6 +4,7 @@ from yaspin import yaspin
 from datetime import datetime
 import requests 
 import argparse
+import random
 import time
 
 # --- Argument Parsing ---
@@ -33,6 +34,51 @@ reset   = "\033[0m"
 
 def banner():
     os.system("clear")
+    texts = [
+        "Knowledge is the real exploit.",
+        "Curiosity is our weapon.",
+        "Think like a hacker, act like a builder.",
+        "Every bug is an opportunity.",
+        "Hack the system, not the people.",
+        "Code is temporary, mindset is permanent.",
+        "Access is earned, not given.",
+        "Break assumptions, not ethics.",
+        "Read the source, change the world.",
+        "The best payload is persistence.",
+        "Trust nothing, verify everything.",
+        "Map the attack surface, master the craft.",
+        "Skill > tools, always.",
+        "From 404s to breakthroughs.",
+        "Rules are interfaces—learn their edges.",
+        "Small scripts, big impact.",
+        "Signal over noise, always.",
+        "Think adversarial, build responsibly.",
+        "Exploit curiosity, patch ignorance.",
+        "Velocity comes from clarity.",
+        "Errors are roadmaps, not obstacles.",
+        "Every system hides a story.",
+        "Obscurity is fragile security.",
+        "What you patch today saves you tomorrow.",
+        "Recon is half the battle.",
+        "A true hacker never stops learning.",
+        "Data is the new zero-day.",
+        "Good hackers break barriers, not laws.",
+        "Every request tells a secret.",
+        "The shell is just the beginning.",
+        "Creativity beats automation.",
+        "Knowledge shared is power multiplied.",
+        "Strong security is invisible.",
+        "A hacker sees patterns where others see noise.",
+        "Silence is stealth, noise is failure.",
+        "Curiosity cracks the strongest locks.",
+        "The deepest bugs live in plain sight.",
+        "Persistence is the ultimate exploit.",
+        "Hackers don’t wait for permission.",
+        "Adapt, exploit, evolve."
+    ]
+
+    choiced_text = random.choice(texts)
+
     me = f"created by: " + name_bg + red + "NakuTenshi" + reset + reset
     banner = rf"""        
             {white_bg} {reset}                  {white_bg} {reset}                                     
@@ -44,21 +90,21 @@ def banner():
       {white_bg}  {reset}{yellow_bg}                            {reset}{white_bg}  {reset}                                 
      {white_bg}  {reset}{yellow_bg}                              {reset}{white_bg}  {reset}                                
     {white_bg}  {reset}{yellow_bg}                                {reset}{white_bg}  {reset}                               
-   {white_bg}  {reset}{yellow_bg}                                  {reset}{white_bg}  {reset}                               
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}    {reset}{white_bg}       {reset}{yellow_bg}       {reset}{white_bg}  {reset}                               
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}   {reset}{white_bg}   {reset}{yellow_bg}            {reset}{white_bg}  {reset}                            
+   {white_bg}  {reset}{yellow_bg}                                  {reset}{white_bg}  {reset} 
+   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}    {reset}{white_bg}       {reset}{yellow_bg}       {reset}{white_bg}  {reset}                      
+   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}   {reset}{white_bg}   {reset}{yellow_bg}            {reset}{white_bg}  {reset}               
    {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}   {reset}{white_bg}   {reset}{yellow_bg}            {reset}{white_bg}  {reset}                               
    {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}    {reset}{white_bg}      {reset}{yellow_bg}        {reset}{white_bg}  {reset}                               
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}       {reset}{white_bg}     {reset}{yellow_bg}      {reset}{white_bg}  {reset} fuck this people                        
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}          {reset}{white_bg}   {reset}{yellow_bg}     {reset}{white_bg}  {reset} {me}                            
+   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}       {reset}{white_bg}     {reset}{yellow_bg}      {reset}{white_bg}  {reset}                         
+   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}          {reset}{white_bg}   {reset}{yellow_bg}     {reset}{white_bg}  {reset}      
    {white_bg}  {reset}{yellow_bg}      {reset}{white_bg}          {reset}{yellow_bg}  {reset}{white_bg}          {reset}{yellow_bg}      {reset}{white_bg}  {reset}                               
     {white_bg}  {reset}{yellow_bg}                                {reset}{white_bg}  {reset}                               
     {white_bg}  {reset}{yellow_bg}                                {reset}{white_bg}  {reset}                                
       {white_bg}    {reset}{yellow_bg}                        {reset}{white_bg}    {reset}                                 
           {white_bg}    {reset}{yellow_bg}                {reset}{white_bg}    {reset}                                    
             {white_bg}    {reset}{yellow_bg}            {reset}{white_bg}    {reset}                                       
-                {white_bg}    {reset}{yellow_bg}      {reset}{white_bg}    {reset}                                          
-                    {white_bg}      {reset}                                  
+                {white_bg}    {reset}{yellow_bg}      {reset}{white_bg}    {reset}   "{choiced_text}"                                        
+                    {white_bg}      {reset}        {me}
 """
     print(banner)
 
