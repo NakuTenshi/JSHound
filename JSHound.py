@@ -7,34 +7,10 @@ import argparse
 import random
 import time
 
-# --- Argument Parsing ---
-parser = argparse.ArgumentParser(
-    description="JSHound: a tool for extacting js file from target and searchin intersting things on that files"
-)
-
-parser.add_argument("-d", required=True, type=str,
-                    help="Target domain (e.g., example.com)")
-parser.add_argument("-o", type=str,
-                    help="Path to save the results")
-
-args = parser.parse_args()
-domain = args.d
-
-
-# --- Colors ---
-red     = "\033[31m"
-blue    = "\033[34m"
-green   = "\033[32m"
-yellow = "\033[93m"
-yellow_bg = "\033[43m"
-name_bg = "\033[48;5;235m"
-gray_bg = "\033[48;5;237m"
-white_bg = "\033[47m"
-reset   = "\033[0m"
-
-def banner():
-    os.system("clear")
-    texts = [
+# --- init values ---
+pathsForFilter = ["nuxt"]
+bannerTexts = [
+        "fuck this people",
         "Knowledge is the real exploit.",
         "Curiosity is our weapon.",
         "Think like a hacker, act like a builder.",
@@ -77,39 +53,67 @@ def banner():
         "Adapt, exploit, evolve."
     ]
 
-    choiced_text = random.choice(texts)
+
+# --- Argument Parsing ---
+parser = argparse.ArgumentParser(
+    description="JSHound: a tool for extacting js file from target and searchin intersting things on that files"
+)
+
+parser.add_argument("-d", required=True, type=str,
+                    help="Target domain (e.g., example.com)")
+parser.add_argument("-o", type=str,
+                    help="Path to save the results")
+
+args = parser.parse_args()
+domain = args.d
+
+
+# --- Colors ---
+red     = "\033[31m"
+blue    = "\033[34m"
+green   = "\033[32m"
+yellow = "\033[93m"
+yellow_bg = "\033[43m"
+name_bg = "\033[48;5;235m"
+gray_bg = "\033[48;5;237m"
+black_bg = "\033[40m"
+white_bg = "\033[47m"
+reset   = "\033[0m"
+
+def banner():
+    os.system("clear")
+    choiced_text = random.choice(bannerTexts)
 
     me = f"created by: " + name_bg + red + "NakuTenshi" + reset + reset
     banner = rf"""        
-            {white_bg} {reset}                  {white_bg} {reset}                                     
-           {white_bg } {reset}{yellow_bg} {reset}{white_bg} {reset}                {white_bg} {reset}{yellow_bg} {reset}{white_bg} {reset}                                     
-          {white_bg} {reset}{yellow_bg}   {reset}{white_bg} {reset}              {white_bg} {reset}{yellow_bg}   {reset}{white_bg} {reset}                                  
-         {white_bg}  {reset}{yellow_bg}    {reset}{white_bg} {reset}            {white_bg} {reset}{yellow_bg}    {reset}{white_bg}  {reset}                                   
-        {white_bg}  {reset}{yellow_bg}      {reset}{white_bg}            {reset}{yellow_bg}      {reset}{white_bg}  {reset}                                  
-       {white_bg}  {reset}{yellow_bg}                          {reset}{white_bg}  {reset}                                  
-      {white_bg}  {reset}{yellow_bg}                            {reset}{white_bg}  {reset}                                 
-     {white_bg}  {reset}{yellow_bg}                              {reset}{white_bg}  {reset}                                
-    {white_bg}  {reset}{yellow_bg}                                {reset}{white_bg}  {reset}                               
-   {white_bg}  {reset}{yellow_bg}                                  {reset}{white_bg}  {reset} 
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}    {reset}{white_bg}       {reset}{yellow_bg}       {reset}{white_bg}  {reset}                      
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}   {reset}{white_bg}   {reset}{yellow_bg}            {reset}{white_bg}  {reset}               
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}   {reset}{white_bg}   {reset}{yellow_bg}            {reset}{white_bg}  {reset}                               
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}    {reset}{white_bg}      {reset}{yellow_bg}        {reset}{white_bg}  {reset}                               
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}       {reset}{white_bg}     {reset}{yellow_bg}      {reset}{white_bg}  {reset}                         
-   {white_bg}  {reset}{yellow_bg}            {reset}{white_bg}    {reset}{yellow_bg}          {reset}{white_bg}   {reset}{yellow_bg}     {reset}{white_bg}  {reset}      
-   {white_bg}  {reset}{yellow_bg}      {reset}{white_bg}          {reset}{yellow_bg}  {reset}{white_bg}          {reset}{yellow_bg}      {reset}{white_bg}  {reset}                               
-    {white_bg}  {reset}{yellow_bg}                                {reset}{white_bg}  {reset}                               
-    {white_bg}  {reset}{yellow_bg}                                {reset}{white_bg}  {reset}                                
-      {white_bg}    {reset}{yellow_bg}                        {reset}{white_bg}    {reset}                                 
-          {white_bg}    {reset}{yellow_bg}                {reset}{white_bg}    {reset}                                    
-            {white_bg}    {reset}{yellow_bg}            {reset}{white_bg}    {reset}                                       
-                {white_bg}    {reset}{yellow_bg}      {reset}{white_bg}    {reset}   "{choiced_text}"                                        
-                    {white_bg}      {reset}        {me}
-"""
+           {black_bg} {reset}                   {black_bg} {reset}                                     
+          {black_bg } {reset}{yellow_bg} {reset}{black_bg} {reset}                 {black_bg} {reset}{yellow_bg} {reset}{black_bg} {reset}                                     
+         {black_bg} {reset}{yellow_bg}   {reset}{black_bg} {reset}               {black_bg} {reset}{yellow_bg}   {reset}{black_bg} {reset}                                  
+        {black_bg}  {reset}{yellow_bg}    {reset}{black_bg} {reset}             {black_bg} {reset}{yellow_bg}    {reset}{black_bg}  {reset}                                   
+       {black_bg}  {reset}{yellow_bg}      {reset}{black_bg}             {reset}{yellow_bg}      {reset}{black_bg}  {reset}                                  
+      {black_bg}  {reset}{yellow_bg}                           {reset}{black_bg}  {reset}                                  
+     {black_bg}  {reset}{yellow_bg}                             {reset}{black_bg}  {reset}                                 
+    {black_bg}  {reset}{yellow_bg}                               {reset}{black_bg}  {reset}                                
+   {black_bg}  {reset}{yellow_bg}                                 {reset}{black_bg}  {reset}                               
+   {black_bg}  {reset}{yellow_bg}                                 {reset}{black_bg}  {reset} 
+   {black_bg}  {reset}{yellow_bg}           {reset}{black_bg}   {reset}{yellow_bg}    {reset}{black_bg}         {reset}{yellow_bg}      {reset}{black_bg}  {reset}                      
+   {black_bg}  {reset}{yellow_bg}           {reset}{black_bg}   {reset}{yellow_bg}   {reset}{black_bg}   {reset}{yellow_bg}             {reset}{black_bg}  {reset}               
+   {black_bg}  {reset}{yellow_bg}           {reset}{black_bg}   {reset}{yellow_bg}   {reset}{black_bg}   {reset}{yellow_bg}             {reset}{black_bg}  {reset}                               
+   {black_bg}  {reset}{yellow_bg}           {reset}{black_bg}   {reset}{yellow_bg}    {reset}{black_bg}      {reset}{yellow_bg}         {reset}{black_bg}  {reset}                               
+   {black_bg}  {reset}{yellow_bg}           {reset}{black_bg}   {reset}{yellow_bg}       {reset}{black_bg}     {reset}{yellow_bg}       {reset}{black_bg}  {reset}                         
+   {black_bg}  {reset}{yellow_bg}           {reset}{black_bg}   {reset}{yellow_bg}          {reset}{black_bg}   {reset}{yellow_bg}      {reset}{black_bg}  {reset}      
+   {black_bg}  {reset}{yellow_bg}     {reset}{black_bg}        {reset}{yellow_bg}    {reset}{black_bg}         {reset}{yellow_bg}       {reset}{black_bg}  {reset}                               
+   {black_bg}  {reset}{yellow_bg}                                 {reset}{black_bg}  {reset}                               
+   {black_bg}  {reset}{yellow_bg}                                 {reset}{black_bg}  {reset}                                
+    {black_bg}    {reset}{yellow_bg}                           {reset}{black_bg}    {reset}                                 
+      {black_bg}    {reset}{yellow_bg}                       {reset}{black_bg}    {reset}                                    
+        {black_bg}    {reset}{yellow_bg}                   {reset}{black_bg}    {reset}                                       
+          {black_bg}    {reset}{yellow_bg}               {reset}{black_bg}    {reset}   "{choiced_text}"                                        
+              {black_bg}               {reset}        {me}
+"""                 
     print(banner)
 
 def getFromCommonCrawl(domain:str, js_files:list) -> int:
-    time.sleep(3)
     return 0
 
 
@@ -135,7 +139,7 @@ def getFromWayback(domain:str, js_files:list) -> int:
     #     for snap in snapshots:
     #         url = snap[1]
     #         if url.endswith(".js") and url not in js_files:
-    #             if not any(path in url for path in ["_nuxt"]):
+    #             if not any(path in url for path in pathsForFilter):
     #                 x += 1
     #                 js_files.append(url)
     return x
@@ -147,6 +151,7 @@ def main():
     print(f"<------------------ {yellow}Status{reset} ------------------>")
     print(f"{blue}[INFO]{reset} target: {red}{domain}{reset}")
     if args.o: print(f"{blue}[INFO]{reset} saving result at: {green}{args.o}{reset}")
+    print(f"{blue}[INFO]{reset} Paths for Drop: {red}{pathsForFilter}{reset}")
 
     js_files = []
 
