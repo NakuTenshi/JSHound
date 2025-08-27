@@ -8,6 +8,10 @@ import sys
 import random
 import time
 from simple_term_menu import TerminalMenu
+import urllib3
+
+# disable SSL warnings if using verify=False
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- Argument Parsing ---
 parser = argparse.ArgumentParser(
@@ -35,7 +39,6 @@ pathsForFilter = [
     "stripe", "shopify", "cdn",
     "vendor", "bundle", "webpack",
     "runtime", "manifest",
-    "highlight.min.js"
 ]
 
 bannerTexts = [
@@ -87,10 +90,11 @@ if args.pw:
         print(f"{red}[ERROR]{reset} the wordlist does not exists")
         exit()
     
-target_result_path = f"./result/{domain}"
-target_result_file = os.path.join(target_result_path, "result.txt")
+target_result_folder = f"./targets/{domain}/result/"
+target_jsFiles_folder = f"./targets/{domain}/jsFiles/"
+target_result_file = os.path.join(target_result_folder, "result.txt")
 
-os.makedirs(target_result_path,exist_ok=True)
+os.makedirs(target_result_folder,exist_ok=True)
 
 js_files = []
 regex = re.compile("|".join(patterns), re.IGNORECASE)
@@ -184,35 +188,93 @@ def getFromWayback(domain:str, js_files:list) -> int:
                     js_files.append(url)
     return x
 
-def downloadJsFiles(url):
-    pass
+def downloadJsFiles(js_files:list , sp):
+    global jsFolder_path
 
-def searchStuffInLocal(file_path):
-    pass
+    os.makedirs(target_jsFiles_folder , exist_ok=True)
 
-def searchStuffOnline(url:str,sp):
+    for url in js_files:
+        sp.text = f"preparing to downlaod {url}..."
+
+        jsFile_url = "/".join(url.split("/")[3:])
+        jsFolder_url = "/".join(jsFile_url.split("/")[:-1])
+
+        jsFolder_path = os.path.join(target_jsFiles_folder,jsFolder_url)
+        jsFiles_path = os.path.join(target_jsFiles_folder, jsFile_url)
+
+
+        response = requests.get(url, stream=True, verify=False)
+        if response.status_code == 200:
+            total = int(response.headers.get("content-length", 0))
+            downloaded = 0
+
+
+            os.makedirs(jsFolder_path , exist_ok=True)
+            with open(jsFiles_path, "wb") as f:
+                start_time = time.time()
+                for chunk in response.iter_content(1024):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+
+                        elapsed = time.time() - start_time
+                        speed = downloaded / elapsed / 1024  # KB/s
+
+                        if total > 0:
+                            percent = (downloaded / total) * 100
+                            sp.text = f"{yellow}[+]{reset} downloading {url} {percent:.2f}% ({speed:.1f} KB/s)"
+                        else:
+                            sp.text = f"{yellow}[+]{reset} downloading {url} {downloaded/1024:.1f} KB ({speed:.1f} KB/s)"
+                sp.write(f"{yellow}[*]{reset} {jsFile_url} downloaded")
+    return jsFolder_path
+
+def searchStuffInLocal(folder_path, sp):
     global findings_count
 
-    sp.text = f"{yellow}sending request to {url}{reset}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        sp.text = f"{yellow}trying to extract staff...{reset}"
-        js_content = response.text
+    js_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path)]
+    
+    for js_file in js_files:
+        with open(js_file, "r", encoding="utf-8", errors="ignore") as file:
+            for line_index, line in enumerate(file , 1):
+                match = regex.search(line)
+                if match:
+                    matchWord = f"{red}{match.group()}{reset}"
+                    sp.write(f"{yellow}[+]{reset} got '{matchWord}' at line {line_index}")
 
-        for line_index,line in enumerate(js_content.splitlines(), 1):
-            match = regex.search(line) 
-            if match:
-                matchWord = f"{red}{match.group()}{reset}"
-                sp.write(f"{yellow}[+]{reset} got '{matchWord}' at line {line_index}")
+                    with open(target_result_file , "a") as file:
+                        content = ""
+                        content += f"\n<----------------- {js_file} ----------------->\n"
+                        content += f"Match: '{match.group()}' Line: {line_index}\n"
+                        content += f"{line}\n"
+                        file.write(content)
+                        
+                        findings_count += 1
 
-                with open(target_result_file , "a") as file:
-                    content = ""
-                    content += f"\n<----------------- {url} ----------------->\n"
-                    content += f"Match: '{match.group()}' Line: {line_index}\n"
-                    content += f"{line}\n"
-                    file.write(content)
-                    
-                    findings_count += 1
+
+def searchStuffOnline(js_files, sp):
+    global findings_count, jsFolder_path
+
+    for url in js_files:
+        sp.text = f"{yellow}sending request to {url}{reset}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            sp.text = f"{yellow}trying to extract staff...{reset}"
+            js_content = response.text
+
+            for line_index,line in enumerate(js_content.splitlines(), 1):
+                match = regex.search(line) 
+                if match:
+                    matchWord = f"{red}{match.group()}{reset}"
+                    sp.write(f"{yellow}[+]{reset} got '{matchWord}' at line {line_index}")
+
+                    with open(target_result_file , "a") as file:
+                        content = ""
+                        content += f"\n<----------------- {url} ----------------->\n"
+                        content += f"Match: '{match.group()}' Line: {line_index}\n"
+                        content += f"{line}\n"
+                        file.write(content)
+                        
+                        findings_count += 1
 
 def main():
     banner()
@@ -262,8 +324,7 @@ def main():
             
             if selectedOption == "do you want to search for interesting stuff in online":
                 with yaspin(text=f"", color="yellow") as sp:
-                    for url in js_files:
-                        searchStuffOnline(url,sp)
+                    searchStuffOnline(js_files, sp)
                 
                     if findings_count: 
                         sp.write(f"{yellow}[+]{reset} got {red}{findings_count}{reset} stuff")                        
@@ -276,16 +337,50 @@ def main():
                         sp.write(f"{yellow}[*]{reset} Nothing found :(\nQuitting...")
                         exit()
             else:
-                pass
+                with yaspin(text=f"", color="yellow") as sp:
+                    sp.write(f"\n<------------- {yellow}Downloading Logs{reset} ------------->")
+                    jsFolder_path = downloadJsFiles(js_files=js_files, sp=sp)
+
+                    sp.write(f"\n<------------------- {yellow}Logs{reset} ------------------->")
+                    searchStuffInLocal(jsFolder_path, sp=sp)
+
+                    if findings_count: 
+                        sp.write(f"{yellow}[+]{reset} got {red}{findings_count}{reset} stuff")                        
+                        sp.write(f"{yellow}[+]{reset} saving at: {blue}{target_result_file}{reset}")                        
+
+                        sp.text = f"{yellow}Done.{reset}"
+                        sp.ok("✓")
+                        exit()
+                    else:
+                        sp.write(f"{yellow}[*]{reset} Nothing found :(\nQuitting...")
+                        exit()
         else:
             print("Nothing found :(\nQuitting...")
             exit()
-
-        
     else:
-        pass
-    
+        print(f"\n<------------- {yellow}Enter the Path{reset} --------------->")
+        print(f"{yellow}[+]{reset} please enter js files directory:")
+        jsFolder_path = input(f"{yellow}>> {reset}")
 
+        for _ in range(3):
+            sys.stdout.write("\033[F")
+            sys.stdout.write("\033[K")
+        sys.stdout.flush()
+        with yaspin(text=f"", color="yellow") as sp:
+            sp.write(f"<------------------- {yellow}Logs{reset} ------------------->")
+            searchStuffInLocal(folder_path=jsFolder_path, sp=sp)
+
+            if findings_count: 
+                sp.write(f"{yellow}[+]{reset} got {red}{findings_count}{reset} stuff")                        
+                sp.write(f"{yellow}[+]{reset} saving at: {blue}{target_result_file}{reset}")                        
+
+                sp.text = f"{yellow}Done.{reset}"
+                sp.ok("✓")
+                exit()
+            else:
+                sp.write(f"{yellow}[*]{reset} Nothing found :(\nQuitting...")
+                exit()
+        
 if __name__ == "__main__":
     try:
         main()
