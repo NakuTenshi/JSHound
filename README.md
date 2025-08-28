@@ -63,3 +63,6 @@ All findings are saved in:
 - By default, common libraries (React, Vue, jQuery, etc.) are skipped.
 - SSL warnings are disabled for easier fetching of JS files.
 - If no matches are found, the tool will exit gracefully.
+
+--- 
+**Created By:** NakuTenshi
