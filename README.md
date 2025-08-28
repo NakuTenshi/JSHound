@@ -53,7 +53,13 @@ All findings are saved in:
 ```
 ./targets/<domain>/result/result.txt
 ```
-Each finding includes:
-  * The JS file path or URL
-  * The matching keyword/pattern
-  * Line number and line content
+
+#### Each finding includes:
+- The JS file path or URL
+- The matching keyword/pattern
+- Line number and line content
+
+#### Notes
+- By default, common libraries (React, Vue, jQuery, etc.) are skipped.
+- SSL warnings are disabled for easier fetching of JS files.
+- If no matches are found, the tool will exit gracefully.
