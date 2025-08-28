@@ -5,6 +5,7 @@ from datetime import datetime
 import requests 
 import argparse
 import sys
+import json
 import random
 import time
 from simple_term_menu import TerminalMenu
@@ -38,7 +39,7 @@ pathsForFilter = [
     "datadog", "newrelic", "cloudflare",
     "stripe", "shopify", "cdn",
     "vendor", "bundle", "webpack",
-    "runtime", "manifest",
+    "runtime", "manifest", "highlight.min.js"
 ]
 
 bannerTexts = [
@@ -156,37 +157,79 @@ def selectOptions(options:list) -> str:
         print("\nbye :)")
         exit()
 
+def getFromWayback(domain:str, js_files:list, sp) -> int:
+    try:
+        x = 0 
+        current_year = datetime.now().year
+        response = requests.get("https://web.archive.org/cdx/search/cdx", params={
+            "url": domain,
+            "matchType": "domain",
+            "fl": "original",
+            "collapse": "digest",
+            "from": current_year,
+            "to": current_year
+        }, stream=True)
 
-def getFromCommonCrawl(domain:str, js_files:list) -> int:
-    return 0
+        if response.status_code == 200:
+            for url in response.iter_lines():
+                if url:
+                    url = url.decode("utf-8")
+                    if url.endswith(".js") and not any(path in url for path in pathsForFilter):
+                        x += 1
+                        js_files.append(url)
+        return x
+    except requests.exceptions.ConnectionError:
+        sp.write(f"{red}[-]{reset} Couldn't get data from Archive.org API")
 
 
-def getFromUrlscan(domain:str, js_files:list) -> int:
-    return 0
+def getFromCommonCrawl(domain:str, js_files:list, sp) -> int:
+    try:
+        x = 0 
+        currentTimeResponse = requests.get("https://index.commoncrawl.org/collinfo.json")
+        if currentTimeResponse.status_code == 200:
+            currentTime = currentTimeResponse.json()[0]["id"]
 
+            response = requests.get(f"https://index.commoncrawl.org/{currentTime}-index?url=*.{domain}/*&output=json&collapse=urlkey")
+            if response.status_code == 200:
+                for line in response.iter_lines():
+                    if line:
+                        data = json.loads(line)
+                        url = str(data["url"])
+                        if url.endswith(".js") and not any(path in url for path in pathsForFilter):
+                            js_files.append(url)
+                            x += 1
+                            
+        return x
+    except requests.exceptions.ConnectionError:
+        sp.write(f"{red}[-]{reset} Couldn't get data from Common Crawl API")
 
-def getFromWayback(domain:str, js_files:list) -> int:
-    x = 0 
-    current_year = datetime.now().year
-    response = requests.get("https://web.archive.org/cdx/search/cdx", params={
-        "url": domain,
-        "matchType": "domain",
-        "fl": "timestamp,original",
-        "collapse": "digest",
-        "output": "json",
-        "from": current_year,
-        "to": current_year
-    })
+def getFromUrlscan(domain:str, js_files:list, sp) -> int:
+    try:
+        x = 0
+        domainRegex = re.compile(rf"^https?://([a-zA-Z0-9-]+\.)*{re.escape(domain)}(/|$)")
+        getResultResponse = requests.get(f"https://urlscan.io/api/v1/search/?q=domain:{domain}")
+        
+        if getResultResponse.status_code == 200:
+            results = getResultResponse.json()["results"]
 
-    if response.status_code == 200:
-        snapshots = response.json()[1:]
-        for snap in snapshots:
-            url = snap[1]
-            if url.endswith(".js") and url not in js_files:
-                if not any(path in url for path in pathsForFilter):
-                    x += 1
-                    js_files.append(url)
-    return x
+            for i in results:
+                resultDomain = i["task"]["domain"]
+                if resultDomain == domain:
+                    resultUrl = i["result"]
+                    break
+
+            resultResponse = requests.get(resultUrl) 
+            if resultResponse.status_code == 200:
+                listUrls = [url for url in resultResponse.json()["lists"]["urls"] if str(url).endswith('.js')]
+                for url in listUrls:
+                    if not any(path in url for path in pathsForFilter):
+                        if domainRegex.search(url):
+                            js_files.append(url)
+                            x += 1 
+
+        return x 
+    except requests.exceptions.ConnectionError:
+        sp.write(f"{red}[-]{reset} Couldn't get data from urlscan.io API")
 
 def downloadJsFiles(js_files:list , sp):
     global jsFolder_path
@@ -239,7 +282,7 @@ def searchStuffInLocal(folder_path, sp):
                 match = regex.search(line)
                 if match:
                     matchWord = f"{red}{match.group()}{reset}"
-                    sp.write(f"{yellow}[+]{reset} got '{matchWord}' at line {line_index}")
+                    sp.write(f"{yellow}[+]{reset} got '{matchWord}' at line {red}{line_index}{reset} from '{red}{js_file}{reset}'")
 
                     with open(target_result_file , "a") as file:
                         content = ""
@@ -249,7 +292,16 @@ def searchStuffInLocal(folder_path, sp):
                         file.write(content)
                         
                         findings_count += 1
+    if findings_count: 
+        sp.write(f"{yellow}[+]{reset} got {red}{findings_count}{reset} stuff")                        
+        sp.write(f"{yellow}[+]{reset} saving result at: {blue}{target_result_file}{reset}")                        
 
+        sp.text = f"{yellow}Done.{reset}"
+        sp.ok("✓")
+        exit()
+    else:
+        sp.write(f"{yellow}[*]{reset} Nothing found :(\nQuitting...")
+        exit()
 
 def searchStuffOnline(js_files, sp):
     global findings_count, jsFolder_path
@@ -265,7 +317,7 @@ def searchStuffOnline(js_files, sp):
                 match = regex.search(line) 
                 if match:
                     matchWord = f"{red}{match.group()}{reset}"
-                    sp.write(f"{yellow}[+]{reset} got '{matchWord}' at line {line_index}")
+                    sp.write(f"{yellow}[+]{reset} got '{matchWord}' at line {red}{line_index}{reset} from '{red}{url}{reset}'")
 
                     with open(target_result_file , "a") as file:
                         content = ""
@@ -275,8 +327,24 @@ def searchStuffOnline(js_files, sp):
                         file.write(content)
                         
                         findings_count += 1
+    if findings_count: 
+        sp.write(f"{yellow}[+]{reset} got {red}{findings_count}{reset} stuff")                        
+        sp.write(f"{yellow}[+]{reset} saving result at: {blue}{target_result_file}{reset}")                        
+
+        sp.text = f"{yellow}Done.{reset}"
+        sp.ok("✓")
+        exit()
+    else:
+        sp.write(f"{yellow}[*]{reset} Nothing found :(\nQuitting...")
+        exit()
+
+
+
+
+
 
 def main():
+    global js_files
     banner()
 
     print(f"<------------------ {yellow}Status{reset} ------------------>")
@@ -302,40 +370,33 @@ def main():
         print(f"\n<------------------- {yellow}Logs{reset} ------------------->")
         with yaspin(text=f"{yellow}Sending a request to the Archive.org API{reset}", color="yellow") as sp:
 
-            founded_js = getFromWayback(domain=domain, js_files=js_files)
-            sp.write(f"{yellow}[+]{reset} Got {founded_js} JS file(s) from the Archive.org API")
+            founded_js = getFromWayback(domain=domain, js_files=js_files, sp=sp)
+            if founded_js: sp.write(f"{yellow}[+]{reset} Got {red}{founded_js}{reset} JS file(s) from Archive.org API")
             sp.text = f"{yellow}Sending a request to the Common Crawl API{reset}"
 
-            founded_js = getFromCommonCrawl(domain=domain, js_files=js_files)
-            sp.write(f"{yellow}[+]{reset} Got {founded_js} JS file(s) from the Common Crawl API")
+            founded_js = getFromCommonCrawl(domain=domain, js_files=js_files, sp=sp)
+            if founded_js: sp.write(f"{yellow}[+]{reset} Got {red}{founded_js}{reset} JS file(s) from Common Crawl API")
             sp.text = f"{yellow}Sending a request to the urlscan.io API{reset}"
 
-            founded_js = getFromUrlscan(domain=domain, js_files=js_files)
-            sp.write(f"{yellow}[+]{reset} Got {founded_js} JS file(s) from the urlscan.io API")
+            founded_js = getFromUrlscan(domain=domain, js_files=js_files, sp=sp)
+            if founded_js:  sp.write(f"{yellow}[+]{reset} Got {red}{founded_js}{reset} JS file(s) from urlscan.io API")
 
         
         if js_files:
+            print(f"{yellow}[+]{reset} Sorting JS file(s)")
+            js_files = sorted(set(js_files))
             print(f"{yellow}[+]{reset} Found {red}{len(js_files)}{reset} JS file(s)")
 
             selectedOption = selectOptions([
-                                            "do you want to search for interesting stuff in online",
-                                            "do you want to download the js files in local then search for interresting stuff at local"
+                                            "search for interesting stuff in online",
+                                            "download the js files in local then search for interresting stuff at local",
+                                            "exit"
                                             ])
             
-            if selectedOption == "do you want to search for interesting stuff in online":
+            if selectedOption == "search for interesting stuff in online":
                 with yaspin(text=f"", color="yellow") as sp:
                     searchStuffOnline(js_files, sp)
                 
-                    if findings_count: 
-                        sp.write(f"{yellow}[+]{reset} got {red}{findings_count}{reset} stuff")                        
-                        sp.write(f"{yellow}[+]{reset} saving at: {blue}{target_result_file}{reset}")                        
-
-                        sp.text = f"{yellow}Done.{reset}"
-                        sp.ok("✓")
-                        exit()
-                    else:
-                        sp.write(f"{yellow}[*]{reset} Nothing found :(\nQuitting...")
-                        exit()
             else:
                 with yaspin(text=f"", color="yellow") as sp:
                     sp.write(f"\n<------------- {yellow}Downloading Logs{reset} ------------->")
@@ -344,16 +405,6 @@ def main():
                     sp.write(f"\n<------------------- {yellow}Logs{reset} ------------------->")
                     searchStuffInLocal(jsFolder_path, sp=sp)
 
-                    if findings_count: 
-                        sp.write(f"{yellow}[+]{reset} got {red}{findings_count}{reset} stuff")                        
-                        sp.write(f"{yellow}[+]{reset} saving at: {blue}{target_result_file}{reset}")                        
-
-                        sp.text = f"{yellow}Done.{reset}"
-                        sp.ok("✓")
-                        exit()
-                    else:
-                        sp.write(f"{yellow}[*]{reset} Nothing found :(\nQuitting...")
-                        exit()
         else:
             print("Nothing found :(\nQuitting...")
             exit()
@@ -370,16 +421,6 @@ def main():
             sp.write(f"<------------------- {yellow}Logs{reset} ------------------->")
             searchStuffInLocal(folder_path=jsFolder_path, sp=sp)
 
-            if findings_count: 
-                sp.write(f"{yellow}[+]{reset} got {red}{findings_count}{reset} stuff")                        
-                sp.write(f"{yellow}[+]{reset} saving at: {blue}{target_result_file}{reset}")                        
-
-                sp.text = f"{yellow}Done.{reset}"
-                sp.ok("✓")
-                exit()
-            else:
-                sp.write(f"{yellow}[*]{reset} Nothing found :(\nQuitting...")
-                exit()
         
 if __name__ == "__main__":
     try:
@@ -390,6 +431,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nBye :)")
         exit()
-    # except Exception as e:
-    #     print(f"[{red}ERROR]{reset} An error occurred: {e}")
-    #     exit()
+    except Exception as e:
+        print(f"[{red}ERROR]{reset} An error occurred: {e}")
+        exit()
