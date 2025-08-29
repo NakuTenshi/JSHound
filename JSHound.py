@@ -19,12 +19,13 @@ parser = argparse.ArgumentParser(
     description="JS Hound: a tool for extracting JavaScript files from a target and searching for interesting findings in those files."
 )
 
-parser.add_argument("-d", required=True, type=str,
-                    help="Target domain (e.g., example.com)")
-parser.add_argument("-pf", type=str,
-                    help="path for drop (e.g., nuxt,node,jquery)")
-parser.add_argument("-pw", type=str,
-                    help="Wordlist of patterns to search for")
+parser.add_argument("-d", required=True, type=str, help="Target domain (e.g., example.com)")
+
+parser.add_argument("-ps", type=str, help="Comma-separated list of paths to exclude (e.g., nuxt,node,jquery)")
+parser.add_argument("-w_ps", type=str, help="Wordlist file containing paths to exclude (e.g., ./pathskip.txt)")
+
+parser.add_argument("-p", type=str, help="Comma-separated list of patterns to search for (e.g., password,api_key,autotoken,token)")
+parser.add_argument("-w_p", type=str, help="Wordlist file containing patterns to search for (e.g., ./patterns.txt)")
 
 
 # --- init values ---
@@ -81,16 +82,32 @@ reset   = "\033[0m"
 
 args = parser.parse_args()
 domain = args.d
-if args.pf:
-    pathsForFilter = args.pf.split(",")
-if args.pw:
-    if os.path.exists(args.pw):
-        with open(args.pw , "r") as file:
-            patterns = file.read().split("\n")        
+
+
+if args.ps and not args.w_ps:
+    pathsForFilter = str(args.ps).split(",")
+elif args.w_ps and not args.ps:
+    wordlist_path = args.w_ps
+    if os.path.exists(wordlist_path):
+        with open(wordlist_path , 'r') as file:
+            pathsForFilter = file.read().splitlines()
     else:
-        print(f"{red}[ERROR]{reset} the wordlist does not exists")
+        print(f"{red}[ERROR]{reset} the wordlist doesn't exists")
         exit()
+
+if args.p and not args.w_p:
+    patterns = str(args.p).split(",")
     
+elif args.w_p and not args.p:
+    wordlist_path = args.w_p
+    if os.path.exists(wordlist_path):
+        with open(wordlist_path , 'r') as file:
+            patterns = file.read().splitlines()
+    else:
+        print(f"{red}[ERROR]{reset} the wordlist doesn't exists")
+        exit()
+
+
 target_result_folder = f"./targets/{domain}/result/"
 target_jsFiles_folder = f"./targets/{domain}/jsFiles/"
 target_result_file = os.path.join(target_result_folder, "result.txt")
