@@ -1,5 +1,10 @@
 # JSHound
 
+<div style="display: grid; place-content: center;">
+  <img src="src/logo.png" height=200 width=150 style="display: grid; place-content: center;">
+  <h5>Created By: NakuTenshi</h5>
+</div>
+
 **JSHound** is a recon tool designed for bug bounty hunters and pentesters.  
 It helps you extract JavaScript files of a target domain from multiple sources (Wayback Machine, Common Crawl, urlscan.io), and then searches those files for potentially sensitive information such as API keys, tokens, credentials, and more.
 
