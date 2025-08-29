@@ -1,8 +1,8 @@
 # JSHound
 
-<div style="display: grid; place-content: center;">
-  <img src="src/logo.png" height=200 width=150 style="display: grid; place-content: center;">
-  <h5>Created By: NakuTenshi</h5>
+<div style="margin-left: auto; margin-right: auto;">
+  <img src="src/logo.png" height=200 width=150 style="margin-left: auto; margin-right: auto;">
+  <p>JSHound: a tool for finding interesting things on js files</p>
 </div>
 
 **JSHound** is a recon tool designed for bug bounty hunters and pentesters.  
