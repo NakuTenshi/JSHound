@@ -46,12 +46,18 @@ python jshound.py -d <domain>
 
 - `-d` : Target domain (required)  
   **Example:** `-d example.com`
-    
-- `-pf` : Comma-separated list of paths to skip  
-  **Example:** `-pf nuxt,node,jquery`
-    
-- `-pw` : Custom wordlist file containing regex patterns to search  
-  **Example:** `-pw ./wordlists/patterns.txt`
+
+- `-ps` : Comma-separated list of paths to exclude  
+  **Example:** `-ps nuxt,node,jquery`
+
+- `-w_ps` : Wordlist file containing paths to exclude  
+  **Example:** `-w_ps ./pathdrop.txt`
+
+- `-p` : Comma-separated list of patterns to search for  
+  **Example:** `-p password,api_key,autotoken,token`
+
+- `-w_p` : Wordlist file containing patterns to search for  
+  **Example:** `-w_p ./patterns.txt`
 
 
 ## Output
