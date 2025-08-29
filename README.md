@@ -5,6 +5,8 @@
   <p>JSHound: a tool for finding interesting things in JS files</p>
 </div>
 
+---
+
 **JSHound** is a recon tool designed for bug bounty hunters and pentesters.  
 It helps you extract JavaScript files of a target domain from multiple sources (Wayback Machine, Common Crawl, urlscan.io), and then searches those files for potentially sensitive information such as API keys, tokens, credentials, and more.
 
