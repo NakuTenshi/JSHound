@@ -48,11 +48,11 @@ python jshound.py -d <domain>
 - `-d` : Target domain (required)  
   **Example:** `-d example.com`
 
-- `-ps` : Comma-separated list of paths to exclude  
-  **Example:** `-ps nuxt,node,jquery`
+- `-fp` : Comma-separated list of paths to filter (e.g., nuxt,node,jquery)
+  **Example:** `-fp nuxt,node,jquery`
 
-- `-w_ps` : Wordlist file containing paths to exclude  
-  **Example:** `-w_ps ./pathdrop.txt`
+- `-w_fp` : Wordlist file containing paths to filter (e.g., ./pathskip.txt) 
+  **Example:** `-w_fp ./pathdrop.txt`
 
 - `-p` : Comma-separated list of patterns to search for  
   **Example:** `-p password,api_key,autotoken,token`

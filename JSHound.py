@@ -21,8 +21,8 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("-d", required=True, type=str, help="Target domain (e.g., example.com)")
 
-parser.add_argument("-ps", type=str, help="Comma-separated list of paths to exclude (e.g., nuxt,node,jquery)")
-parser.add_argument("-w_ps", type=str, help="Wordlist file containing paths to exclude (e.g., ./pathskip.txt)")
+parser.add_argument("-fp", type=str, help="Comma-separated list of paths to filter (e.g., nuxt,node,jquery)")
+parser.add_argument("-w_fp", type=str, help="Wordlist file containing paths to filter (e.g., ./pathskip.txt)")
 
 parser.add_argument("-p", type=str, help="Comma-separated list of patterns to search for (e.g., password,api_key,autotoken,token)")
 parser.add_argument("-w_p", type=str, help="Wordlist file containing patterns to search for (e.g., ./patterns.txt)")
@@ -84,10 +84,10 @@ args = parser.parse_args()
 domain = args.d
 
 
-if args.ps and not args.w_ps:
-    pathsForFilter = str(args.ps).split(",")
-elif args.w_ps and not args.ps:
-    wordlist_path = args.w_ps
+if args.fp and not args.w_fp:
+    pathsForFilter = str(args.fp).split(",")
+elif args.w_fp and not args.fp:
+    wordlist_path = args.w_fp
     if os.path.exists(wordlist_path):
         with open(wordlist_path , 'r') as file:
             pathsForFilter = file.read().splitlines()
@@ -96,8 +96,7 @@ elif args.w_ps and not args.ps:
         exit()
 
 if args.p and not args.w_p:
-    patterns = str(args.p).split(",")
-    
+    patterns = str(args.p).split(",") 
 elif args.w_p and not args.p:
     wordlist_path = args.w_p
     if os.path.exists(wordlist_path):
