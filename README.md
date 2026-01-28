@@ -1,7 +1,7 @@
 # JSHound 🐺
 
 <div align="center">
-  <img src="src/logo.png" alt="JSHound Logo" width="150" height="200"/>
+  <img src="icons/linkHound.png" alt="JSHound Logo" width="150" height="200"/>
   <p>JSHound: a tool for finding interesting things in JS files</p>
 </div>
 
