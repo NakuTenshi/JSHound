@@ -8,6 +8,7 @@ fi
 file='./JSHound.py'
 name="$(basename "${file%.py}")"
 
+pip3 install -r requirements.txt
 cp -r $file /bin/$name
 echo "Done."
 
